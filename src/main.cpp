@@ -6,9 +6,15 @@
 #include <WiFiManager.h>         //https://github.com/tzapu/WiFiManager
 #include <ESP8266mDNS.h>
 
+// Servo lib
+#include <Servo.h> 
+Servo servo1; 
+#define servo1Pin 2
+
 WiFiServer server(80);
 
 void setup() {
+    servo1.attach(servo1Pin);
     // put your setup code here, to run once:
     Serial.begin(115200);
     delay(10);
@@ -57,6 +63,7 @@ Serial.println("mDNS responder started");
 
 void loop() {
     // put your main code here, to run repeatedly:
+  Serial.println(analogRead(4));
     // Check if a client has connected
   WiFiClient client = server.available();
   if (!client) {
