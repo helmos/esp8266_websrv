@@ -5,18 +5,19 @@
 #include <ESP8266WebServer.h>
 #include <WiFiManager.h>         //https://github.com/tzapu/WiFiManager
 #include <ESP8266mDNS.h>
-
+//ADC_MODE(ADC_VCC);
 // Servo lib
 #include <Servo.h> 
 Servo servo1; 
-#define servo1Pin 2
+#define servo1Pin 12
 
 WiFiServer server(80);
-
 void setup() {
     servo1.attach(servo1Pin);
+    servo1.write(90);
+
     // put your setup code here, to run once:
-    Serial.begin(115200);
+    Serial.begin(9600);
     delay(10);
 
     // prepare GPIO2
@@ -63,7 +64,7 @@ Serial.println("mDNS responder started");
 
 void loop() {
     // put your main code here, to run repeatedly:
-  Serial.println(analogRead(4));
+  //Serial.println(analogRead(A0));
     // Check if a client has connected
   WiFiClient client = server.available();
   if (!client) {
@@ -87,6 +88,8 @@ void loop() {
     val = 0;
   else if (req.indexOf("/gpio/1") != -1)
     val = 1;
+  else if (req.indexOf("/servo/") != -1)
+    servo1.write(req.substring(req.indexOf("/servo/")+7).toInt());
   else {
     Serial.println("invalid request");
     client.stop();
@@ -95,12 +98,18 @@ void loop() {
 
   // Set GPIO2 according to the request
   digitalWrite(2, val);
+  ///if (val == 0)
+  /// servo1.write(170);
+  ///else if (val == 1)
+  /// servo1.write(10);
+
 
   client.flush();
 
   // Prepare the response
   String s = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n<!DOCTYPE HTML>\r\n<html>\r\nGPIO is now ";
   s += (val)?"high":"low";
+  s += analogRead(A0);
   s += "</html>\n";
 
   // Send the response to the client
