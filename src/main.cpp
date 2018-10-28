@@ -90,7 +90,6 @@ void loop() {
     val = 1;
   else if (req.indexOf("/servo/") != -1){
     servo1.write(req.substring(req.indexOf("/servo/")+7).toInt());
-    val = 0;
   }
   else {
     Serial.println("invalid request");
