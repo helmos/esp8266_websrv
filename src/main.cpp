@@ -10,6 +10,7 @@
 #include <Servo.h> 
 Servo servo1; 
 #define servo1Pin 12
+int val = 1;
 
 WiFiServer server(80);
 void setup() {
@@ -83,7 +84,7 @@ void loop() {
   client.flush();
 
   // Match the request
-  int val;
+  //int val;
   if (req.indexOf("/gpio/0") != -1)
     val = 0;
   else if (req.indexOf("/gpio/1") != -1)
