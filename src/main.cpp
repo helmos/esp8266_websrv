@@ -11,6 +11,12 @@
 Servo servo1; 
 #define servo1Pin 12
 int val = 1;
+bool flag = 0;
+//------------------------------------------
+String valueString = String(5);
+int pos1 = 0;
+int pos2 = 0;
+//----------------------------------------------
 
 WiFiServer server(80);
 void setup() {
@@ -83,15 +89,70 @@ void loop() {
   Serial.println(req);
   client.flush();
 
-  // Match the request
-  //int val;
-  if (req.indexOf("/gpio/0") != -1)
-    val = 0;
-  else if (req.indexOf("/gpio/1") != -1)
-    val = 1;
-  else if (req.indexOf("/servo/") != -1){
-    servo1.write(req.substring(req.indexOf("/servo/")+7).toInt());
-  }
+//----------------------------------------------------------------------
+  
+  
+   //----------------------------------------------------------------------
+
+   // Match the request
+   //int val;
+   if (req.indexOf("/gpio/0") != -1)
+   {
+     val = 0;
+     flag = 1;
+   }
+   else if (req.indexOf("/gpio/1") != -1)
+   {
+     val = 1;
+     flag = 1;
+   }
+   else if (req.indexOf("/servo/") != -1)
+   {
+     servo1.write(req.substring(req.indexOf("/servo/") + 7).toInt());
+   }
+   else if (req.indexOf("/web/") != -1)
+   {
+     // HTTP headers always start with a response code (e.g. HTTP/1.1 200 OK)
+     // and a content-type so the client knows what's coming, then a blank line:
+     client.println("HTTP/1.1 200 OK");
+     client.println("Content-type:text/html");
+     client.println("Connection: close");
+     client.println();
+     // Display the HTML web page
+     client.println("<!DOCTYPE html><html>");
+     client.println("<head><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">");
+     client.println("<link rel=\"icon\" href=\"data:,\">");
+     // CSS to style the on/off buttons
+     // Feel free to change the background-color and font-size attributes to fit your preferences
+     client.println("<style>body { text-align: center; font-family: \"Trebuchet MS\", Arial; margin-left:auto; margin-right:auto;}");
+     client.println(".slider { width: 300px; }</style>");
+     client.println("<script src=\"https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js\"></script>");
+     // Web Page
+     client.println("</head><body><h1>ESP8266 Servo</h1>");
+     client.println("<p>Position: <span id=\"servoPos\"></span></p>");
+     client.println("<input type=\"range\" min=\"10\" max=\"180\" class=\"slider\" id=\"servoSlider\" onchange=\"servo(this.value)\" value=\"" + valueString + "\"/>");
+     client.println("<script>var slider = document.getElementById(\"servoSlider\");");
+     client.println("var servoP = document.getElementById(\"servoPos\"); servoP.innerHTML = slider.value;");
+     client.println("slider.oninput = function() { slider.value = this.value; servoP.innerHTML = this.value; }");
+     client.println("$.ajaxSetup({timeout:1000}); function servo(pos) { ");
+     client.println("$.get(\"/?value=\" + pos + \"&\"); {Connection: close};}</script>");
+     client.println("</body></html>");
+    }
+  //-----------------------------------------------------------------------------
+  //GET /?value=180& HTTP/1.1
+   else if (req.indexOf("GET /?value=") >= 0)
+   {
+     pos1 = req.indexOf('=');
+     pos2 = req.indexOf('&');
+     valueString = req.substring(pos1 + 1, pos2);
+
+     //Rotate the servo
+     servo1.write(valueString.toInt());
+     delay(20);
+     Serial.println(valueString);
+     return;
+   }
+  //-----------------------------------------------------------------------------
   else {
     Serial.println("invalid request");
     client.stop();
@@ -115,7 +176,7 @@ void loop() {
   s += "</html>\n";
 
   // Send the response to the client
-  client.print(s);
+  if (flag == 1) client.print(s);
   delay(1);
   Serial.println("Client disonnected");
 
