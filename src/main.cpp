@@ -1,17 +1,19 @@
 #include <ESP8266WiFi.h>          //https://github.com/esp8266/Arduino
-
+#define BLYNK_PRINT Serial
 // needed for library
 #include <DNSServer.h>
 #include <ESP8266WebServer.h>
 #include <WiFiManager.h>         //https://github.com/tzapu/WiFiManager
 #include <ESP8266mDNS.h>
+#include <BlynkSimpleEsp8266.h>
 //ADC_MODE(ADC_VCC);
 // Servo lib
 #include <Servo.h> 
 Servo servo1; 
-#define servo1Pin 12
+#define servo1Pin 12 
 int val = 1;
 bool flag = 0;
+char auth[] = "c13bb5bc3a384fe181333cd3fcf01866";
 //------------------------------------------
 String valueString = String(5);
 int pos1 = 0;
@@ -20,6 +22,8 @@ int pos2 = 0;
 
 WiFiServer server(80);
 void setup() {
+    Blynk.config(auth);
+    Blynk.connect();
     servo1.attach(servo1Pin);
     servo1.write(90);
 
@@ -69,8 +73,35 @@ Serial.println("mDNS responder started");
      Serial.println("mDNS service added");
 }
 
+BLYNK_WRITE(V1)
+{
+  int pinValue = param.asInt(); // assigning incoming value from pin V1 to a variable
+  // You can also use:
+  // String i = param.asStr();
+  // double d = param.asDouble();
+  servo1.write(pinValue);
+  Serial.print("V1 Slider value is: ");
+  Serial.println(pinValue);
+
+}
+
+BLYNK_WRITE(V0)
+{
+  int x = param[0].asInt();
+  int y = param[1].asInt();
+  int z = param[2].asInt();
+  Serial.print("x value is: ");
+  Serial.println(x);
+  Serial.print("y value is: ");
+  Serial.println(y);
+  Serial.print("z value is: ");
+  Serial.println(z);
+  servo1.write(90 + z * 4);
+}
+
 void loop() {
     // put your main code here, to run repeatedly:
+    Blynk.run();
   //Serial.println(analogRead(A0));
     // Check if a client has connected
   WiFiClient client = server.available();
