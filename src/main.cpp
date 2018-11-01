@@ -10,7 +10,9 @@
 // Servo lib
 #include <Servo.h> 
 Servo servo1; 
+Servo servo2;
 #define servo1Pin 12 
+#define servo2Pin 14 
 int val = 1;
 bool flag = 0;
 char auth[] = "c13bb5bc3a384fe181333cd3fcf01866";
@@ -26,6 +28,9 @@ void setup() {
     Blynk.connect();
     servo1.attach(servo1Pin);
     servo1.write(90);
+    servo2.attach(servo2Pin);
+    servo2.write(90);
+
 
     // put your setup code here, to run once:
     Serial.begin(9600);
@@ -85,6 +90,18 @@ BLYNK_WRITE(V1)
 
 }
 
+BLYNK_WRITE(V2)
+{
+  int pinValue = param.asInt(); // assigning incoming value from pin V1 to a variable
+  // You can also use:
+  // String i = param.asStr();
+  // double d = param.asDouble();
+  servo2.write(pinValue);
+  Serial.print("V2 Slider value is: ");
+  Serial.println(pinValue);
+
+}
+
 BLYNK_WRITE(V0)
 {
   int x = param[0].asInt();
@@ -95,8 +112,8 @@ BLYNK_WRITE(V0)
   Serial.print("y value is: ");
   Serial.println(y);
   Serial.print("z value is: ");
-  Serial.println(z);
-  servo1.write(90 + z * 4);
+  Serial.println(z); 
+  servo1.write(90 + z * 5);
 }
 
 void loop() {
