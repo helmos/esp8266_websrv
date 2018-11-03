@@ -1,4 +1,6 @@
 #include <ESP8266WiFi.h>          //https://github.com/esp8266/Arduino
+#include <Ticker.h>
+Ticker scheduler;
 #define BLYNK_PRINT Serial
 // needed for library
 #include <DNSServer.h>
@@ -13,7 +15,10 @@ Servo servo1;
 Servo servo2;
 //Servo servo3;
 #define servo1Pin 12 
+#define servo1InitPosition 90
 #define servo2Pin 14 
+#define servo2InitPosition 90
+#define ServoIncrement 1
 int val = 1;
 bool flag = 0;
 char auth[] = "c13bb5bc3a384fe181333cd3fcf01866";
@@ -21,9 +26,25 @@ char auth[] = "c13bb5bc3a384fe181333cd3fcf01866";
 String valueString = String(5);
 int pos1 = 0;
 int pos2 = 0;
+int count = 0;
+int Servo1Pos = servo1InitPosition;
+int Servo2Pos = servo2InitPosition;
+int Servo1PosReal = servo1InitPosition;
+int Servo2PosReal = servo2InitPosition;
 //----------------------------------------------
 
 WiFiServer server(80);
+
+void servoscheduler() {
+  if (Servo1PosReal < Servo1Pos) Servo1PosReal = Servo1PosReal + ServoIncrement;
+  if (Servo1PosReal > Servo1Pos) Servo1PosReal = Servo1PosReal - ServoIncrement;
+  if (Servo2PosReal < Servo2Pos) Servo2PosReal = Servo2PosReal + ServoIncrement;
+  if (Servo2PosReal > Servo2Pos) Servo2PosReal = Servo2PosReal - ServoIncrement;
+  servo1.write(Servo1PosReal);
+  servo2.write(Servo2PosReal);
+}
+
+
 void setup() {
     Blynk.config(auth);
     Blynk.connect();
@@ -32,6 +53,7 @@ void setup() {
     servo2.attach(servo2Pin);
     servo2.write(90);
 
+    scheduler.attach_ms(1, servoscheduler);
 
     // put your setup code here, to run once:
     Serial.begin(9600);
@@ -85,7 +107,11 @@ BLYNK_WRITE(V1)
   // You can also use:
   // String i = param.asStr();
   // double d = param.asDouble();
-  servo1.write(pinValue);
+
+  ////servo1.write(pinValue);
+
+  Servo1Pos = pinValue;
+
   Serial.print("V1 Slider value is: ");
   Serial.println(pinValue);
 
@@ -97,7 +123,10 @@ BLYNK_WRITE(V2)
   // You can also use:
   // String i = param.asStr();
   // double d = param.asDouble();
-  servo2.write(pinValue);
+  ///servo2.write(pinValue);
+
+  Servo2Pos = pinValue;
+
   Serial.print("V2 Slider value is: ");
   Serial.println(pinValue);
 
